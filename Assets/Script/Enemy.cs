@@ -14,12 +14,12 @@ public class Enemy : MonoBehaviour
     public AudioClip hitsfx;
     public AudioClip playerHit;
 
-    private void Start()
+    protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         if (!target)
         {
@@ -38,24 +38,21 @@ public class Enemy : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        {
-            
-        }
     }
 
-    private void FixedUpdate()
+    protected virtual void FixedUpdate()
     {
         rb.velocity = transform.up * speed;
     }
 
-    private void RotateTowardsTarget()
+    protected virtual void RotateTowardsTarget()
     {
         Vector2 targetDirection = target.position - transform.position;
         float angle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg - 90f;
         Quaternion q = Quaternion.Euler(new Vector3(0, 0, angle));
         transform.localRotation = Quaternion.Slerp(transform.localRotation, q, rotateSpeed);
     }
-    private void GetTarget()
+    protected virtual void GetTarget()
     {
         if (GameObject.FindGameObjectWithTag("Player"))
         {
@@ -63,7 +60,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D other)
+    protected virtual void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.CompareTag("Player"))
         {

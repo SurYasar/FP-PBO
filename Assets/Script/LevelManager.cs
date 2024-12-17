@@ -29,6 +29,13 @@ public class LevelManager : MonoBehaviour
         deathScreen.SetActive(true);
         scoreText.text = "Score : " + score.ToString();
 
+        // Hapus semua enemy di scene
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        foreach (GameObject enemy in enemies)
+        {
+            Destroy(enemy);
+        }
+
         string loadedData = SaveSystem.Load("save");
         if (loadedData != null)
         {
