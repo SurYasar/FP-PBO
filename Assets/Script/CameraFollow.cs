@@ -9,6 +9,12 @@ public class CameraFollow : MonoBehaviour
 
     public Transform target;
 
+    [Header("Camera Bounds (Batas Arena)")]
+    [Tooltip("Batas koordinat X paling kiri")] public float minX;
+    [Tooltip("Batas koordinat X paling kanan")] public float maxX;
+    [Tooltip("Batas koordinat Y paling bawah")] public float minY;
+    [Tooltip("Batas koordinat Y paling atas")] public float maxY;
+
     private Vector3 vel = Vector3.zero;
 
     private void FixedUpdate()
@@ -18,7 +24,15 @@ public class CameraFollow : MonoBehaviour
             Vector3 targetPosition = target.position + offset;
             targetPosition.z = transform.position.z;
 
-            transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref vel, damping);
+            // 1. Hitung pergerakan smooth seperti biasa
+            Vector3 smoothedPosition = Vector3.SmoothDamp(transform.position, targetPosition, ref vel, damping, Mathf.Infinity, Time.unscaledDeltaTime);
+
+            // 2. Batasi posisi X dan Y hasil smooth tadi agar tidak melewati batas
+            smoothedPosition.x = Mathf.Clamp(smoothedPosition.x, minX, maxX);
+            smoothedPosition.y = Mathf.Clamp(smoothedPosition.y, minY, maxY);
+
+            // 3. Aplikasikan posisi yang sudah aman ke kamera
+            transform.position = smoothedPosition;
         }
         
     }

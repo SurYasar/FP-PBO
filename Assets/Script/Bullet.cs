@@ -9,21 +9,32 @@ public class Bullet : MonoBehaviour
     [Range(1, 10)]
     [SerializeField] private float lifeTime = 2f;
 
-    private Rigidbody2D rb;
-
     private void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        Destroy(gameObject, lifeTime);
+
     }
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void Update()
     {
-        if (!collision.gameObject.CompareTag("Player"))
-        Destroy(gameObject);
+        // Peluru bergerak maju berdasarkan CustomDeltaTime dari TimeManager
+        if (TimeManager.instance != null)
+        {
+            transform.Translate(Vector3.up * speed * TimeManager.instance.CustomDeltaTime);
+
+            // Mengurangi lifetime peluru secara dinamis
+            lifeTime -= TimeManager.instance.CustomDeltaTime;
+            if (lifeTime <= 0f)
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        // Peluru player hancur jika menabrak apa pun selain player itu sendiri
+        if (!collision.CompareTag("Player"))
+        {
+            Destroy(gameObject);
+        }
     }
 
-    private void FixedUpdate()
-    {
-        rb.velocity = transform.up * speed;
-    }
 }

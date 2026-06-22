@@ -42,15 +42,27 @@ public class Enemy : MonoBehaviour
 
     protected virtual void FixedUpdate()
     {
-        rb.velocity = transform.up * speed;
+        // Pergerakan menggunakan posisi Rigidbody + arah depan dikali CustomDeltaTime
+        // Safety check untuk base enemy
+        if (TimeManager.instance == null) return;
+        // Gunakan Time.fixedDeltaTime yang dikalikan dengan skala waktu saat ini
+        float dynamicFixedDelta = Time.fixedDeltaTime * TimeManager.instance.CurrentTimeScale;
+
+        Vector2 nextPosition = rb.position + (Vector2)(transform.up * speed * dynamicFixedDelta);
+        rb.MovePosition(nextPosition);
     }
 
     protected virtual void RotateTowardsTarget()
     {
+        if (TimeManager.instance == null) return;
+
         Vector2 targetDirection = target.position - transform.position;
         float angle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg - 90f;
         Quaternion q = Quaternion.Euler(new Vector3(0, 0, angle));
-        transform.localRotation = Quaternion.Slerp(transform.localRotation, q, rotateSpeed);
+
+        // Kecepatan rotasi (Slerp) dikalikan dengan CurrentTimeScale agar ikut melambat secara visual
+        float dynamicRotateSpeed = rotateSpeed * TimeManager.instance.CurrentTimeScale;
+        transform.localRotation = Quaternion.Slerp(transform.localRotation, q, dynamicRotateSpeed);
     }
     protected virtual void GetTarget()
     {
@@ -59,7 +71,6 @@ public class Enemy : MonoBehaviour
             target = GameObject.FindGameObjectWithTag("Player").transform;
         }
     }
-
     protected virtual void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.CompareTag("Player"))
@@ -69,7 +80,10 @@ public class Enemy : MonoBehaviour
             Destroy(other.gameObject);
             target = null;
         }
-        else if (other.gameObject.CompareTag("Bullet"))
+    }
+    protected virtual void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.CompareTag("Bullet"))
         {
             if (speed <= 5f)
             {

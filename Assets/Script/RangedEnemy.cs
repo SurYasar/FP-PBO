@@ -16,7 +16,7 @@ public class RangedEnemy : Enemy
 
     protected override void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        base.Start(); // Memanggil start milik parent
     }
 
     protected override void Update()
@@ -39,32 +39,39 @@ public class RangedEnemy : Enemy
 
     private void Shoot()
     {
+        if (TimeManager.instance == null) return;
+
         if (timeToFire <= 0f)
         {
             Instantiate(enemyBulletPrefab, firePoint.position, firePoint.rotation);
             AudioManager.instance.PlaySFX(shootSFX);
+            fireRate = Random.Range(1.5f, 3f); // Variasi pemicu tembakan (opsional)
             timeToFire = fireRate;
         }
         else
         {
-            timeToFire -= Time.deltaTime;
+            // Pengurangan cooldown tembakan musuh harus melambat saat player diam
+            timeToFire -= TimeManager.instance.CustomDeltaTime;
         }
 
     }
     protected override void FixedUpdate()
     {
-        if (target == null)
+        // Safety check: jika target (player) atau TimeManager belum siap, langsung batalkan proses bawahnya
+        if (target == null || TimeManager.instance == null)
             return;
-
-        base.FixedUpdate();
 
         if (Vector2.Distance(target.position, transform.position) >= distanceToStop)
         {
-            rb.velocity = transform.up * speed;
+            // Gunakan Time.fixedDeltaTime yang dikalikan dengan skala waktu saat ini
+            float dynamicFixedDelta = Time.fixedDeltaTime * TimeManager.instance.CurrentTimeScale;
+
+            Vector2 nextPosition = rb.position + (Vector2)(transform.up * speed * dynamicFixedDelta);
+            rb.MovePosition(nextPosition);
         }
         else
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
         }
         
         
@@ -84,9 +91,9 @@ public class RangedEnemy : Enemy
     }
 
 
-    protected override void OnCollisionEnter2D(Collision2D other)
+    protected override void OnTriggerEnter2D(Collider2D other)
     {
-        base.OnCollisionEnter2D(other);
+        base.OnTriggerEnter2D(other);
 
         if (other.gameObject.CompareTag("Bullet"))
         {
